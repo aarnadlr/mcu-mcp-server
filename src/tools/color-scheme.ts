@@ -32,28 +32,26 @@ export interface GenerateColorSchemeOptions {
 }
 
 type DynamicColor = {
-  getArgb(scheme: DynamicScheme): number;
+  getArgb(scheme: any): number;
 };
 
 type MaterialDynamicColors = {
-  primary(): DynamicColor;
-  onPrimary(): DynamicColor;
-  primaryContainer(): DynamicColor;
-  onPrimaryContainer(): DynamicColor;
-  secondary(): DynamicColor;
-  onSecondary(): DynamicColor;
-  tertiary(): DynamicColor;
-  onTertiary(): DynamicColor;
-  background(): DynamicColor;
-  surface(): DynamicColor;
+  primary: DynamicColor;
+  onPrimary: DynamicColor;
+  primaryContainer: DynamicColor;
+  onPrimaryContainer: DynamicColor;
+  secondary: DynamicColor;
+  onSecondary: DynamicColor;
+  tertiary: DynamicColor;
+  onTertiary: DynamicColor;
+  background: DynamicColor;
+  surface: DynamicColor;
 };
 
-type DynamicScheme = {
-  colors: MaterialDynamicColors;
-};
+type DynamicScheme = any;
 
 type SchemeConstructor = new (
-  sourceColorHct: unknown,
+  sourceColorHct: any,
   isDark: boolean,
   contrastLevel: number
 ) => DynamicScheme;
@@ -79,18 +77,18 @@ const colorRoleExtractors: Record<
   SchemeRole,
   (colors: MaterialDynamicColors, scheme: DynamicScheme) => number
 > = {
-  primary: (colors, scheme) => colors.primary().getArgb(scheme),
-  onPrimary: (colors, scheme) => colors.onPrimary().getArgb(scheme),
+  primary: (colors, scheme) => colors.primary.getArgb(scheme),
+  onPrimary: (colors, scheme) => colors.onPrimary.getArgb(scheme),
   primaryContainer: (colors, scheme) =>
-    colors.primaryContainer().getArgb(scheme),
+    colors.primaryContainer.getArgb(scheme),
   onPrimaryContainer: (colors, scheme) =>
-    colors.onPrimaryContainer().getArgb(scheme),
-  secondary: (colors, scheme) => colors.secondary().getArgb(scheme),
-  onSecondary: (colors, scheme) => colors.onSecondary().getArgb(scheme),
-  tertiary: (colors, scheme) => colors.tertiary().getArgb(scheme),
-  onTertiary: (colors, scheme) => colors.onTertiary().getArgb(scheme),
-  background: (colors, scheme) => colors.background().getArgb(scheme),
-  surface: (colors, scheme) => colors.surface().getArgb(scheme),
+    colors.onPrimaryContainer.getArgb(scheme),
+  secondary: (colors, scheme) => colors.secondary.getArgb(scheme),
+  onSecondary: (colors, scheme) => colors.onSecondary.getArgb(scheme),
+  tertiary: (colors, scheme) => colors.tertiary.getArgb(scheme),
+  onTertiary: (colors, scheme) => colors.onTertiary.getArgb(scheme),
+  background: (colors, scheme) => colors.background.getArgb(scheme),
+  surface: (colors, scheme) => colors.surface.getArgb(scheme),
 };
 
 type LoadedModules = {
@@ -98,6 +96,7 @@ type LoadedModules = {
   argbFromHex(hex: string): number;
   hexFromArgb(argb: number): string;
   schemes: Record<ColorSchemeCategory, SchemeConstructor>;
+  MaterialDynamicColors: MaterialDynamicColors;
 };
 
 let modulesPromise: Promise<LoadedModules> | null = null;
@@ -105,82 +104,26 @@ let modulesPromise: Promise<LoadedModules> | null = null;
 async function loadModules(): Promise<LoadedModules> {
   if (!modulesPromise) {
     modulesPromise = (async () => {
-      const baseUrl = new URL(
-        "../../material-color-utilities/typescript/",
-        import.meta.url
-      );
-
-      const importModule = async <T>(relativePath: string) => {
-        const url = new URL(relativePath, baseUrl);
-        return (await import(url.href)) as T;
-      };
-
-      const [
-        hctModule,
-        stringUtilsModule,
-        contentModule,
-        expressiveModule,
-        fidelityModule,
-        fruitSaladModule,
-        monochromeModule,
-        neutralModule,
-        rainbowModule,
-        tonalSpotModule,
-        vibrantModule,
-      ] = await Promise.all([
-        importModule<{ Hct: { fromInt(argb: number): unknown } }>(
-          "hct/hct.js"
-        ),
-        importModule<{
-          argbFromHex(hex: string): number;
-          hexFromArgb(argb: number): string;
-        }>("utils/string_utils.js"),
-        importModule<{ SchemeContent: SchemeConstructor }>(
-          "scheme/scheme_content.js"
-        ),
-        importModule<{ SchemeExpressive: SchemeConstructor }>(
-          "scheme/scheme_expressive.js"
-        ),
-        importModule<{ SchemeFidelity: SchemeConstructor }>(
-          "scheme/scheme_fidelity.js"
-        ),
-        importModule<{ SchemeFruitSalad: SchemeConstructor }>(
-          "scheme/scheme_fruit_salad.js"
-        ),
-        importModule<{ SchemeMonochrome: SchemeConstructor }>(
-          "scheme/scheme_monochrome.js"
-        ),
-        importModule<{ SchemeNeutral: SchemeConstructor }>(
-          "scheme/scheme_neutral.js"
-        ),
-        importModule<{ SchemeRainbow: SchemeConstructor }>(
-          "scheme/scheme_rainbow.js"
-        ),
-        importModule<{ SchemeTonalSpot: SchemeConstructor }>(
-          "scheme/scheme_tonal_spot.js"
-        ),
-        importModule<{ SchemeVibrant: SchemeConstructor }>(
-          "scheme/scheme_vibrant.js"
-        ),
-      ]);
+      const mcu = await import("@material/material-color-utilities");
 
       const schemes: Record<ColorSchemeCategory, SchemeConstructor> = {
-        content: contentModule.SchemeContent,
-        expressive: expressiveModule.SchemeExpressive,
-        fidelity: fidelityModule.SchemeFidelity,
-        "fruit-salad": fruitSaladModule.SchemeFruitSalad,
-        monochrome: monochromeModule.SchemeMonochrome,
-        neutral: neutralModule.SchemeNeutral,
-        rainbow: rainbowModule.SchemeRainbow,
-        "tonal-spot": tonalSpotModule.SchemeTonalSpot,
-        vibrant: vibrantModule.SchemeVibrant,
+        content: mcu.SchemeContent as any,
+        expressive: mcu.SchemeExpressive as any,
+        fidelity: mcu.SchemeFidelity as any,
+        "fruit-salad": mcu.SchemeFruitSalad as any,
+        monochrome: mcu.SchemeMonochrome as any,
+        neutral: mcu.SchemeNeutral as any,
+        rainbow: mcu.SchemeRainbow as any,
+        "tonal-spot": mcu.SchemeTonalSpot as any,
+        vibrant: mcu.SchemeVibrant as any,
       };
 
       return {
-        Hct: hctModule.Hct,
-        argbFromHex: stringUtilsModule.argbFromHex,
-        hexFromArgb: stringUtilsModule.hexFromArgb,
+        Hct: mcu.Hct,
+        argbFromHex: mcu.argbFromHex,
+        hexFromArgb: mcu.hexFromArgb,
         schemes,
+        MaterialDynamicColors: mcu.MaterialDynamicColors,
       };
     })();
   }
@@ -217,7 +160,11 @@ export function supportedCategories(): ColorSchemeCategory[] {
 
 export async function buildScheme(
   options: GenerateColorSchemeOptions
-): Promise<{ scheme: DynamicScheme; hexFromArgb: (argb: number) => string }> {
+): Promise<{
+  scheme: DynamicScheme;
+  hexFromArgb: (argb: number) => string;
+  colors: MaterialDynamicColors;
+}> {
   const { seedColor, category, darkMode = false, contrastLevel = 0 } = options;
   const normalizedCategory = normalizeCategory(category);
   const modules = await loadModules();
@@ -228,14 +175,18 @@ export async function buildScheme(
   const argb = modules.argbFromHex(seedColor);
   const sourceHct = modules.Hct.fromInt(argb);
   const scheme = new factory(sourceHct, darkMode, contrastLevel);
-  return { scheme, hexFromArgb: modules.hexFromArgb };
+  return {
+    scheme,
+    hexFromArgb: modules.hexFromArgb,
+    colors: modules.MaterialDynamicColors,
+  };
 }
 
 export function extractHexColors(
   scheme: DynamicScheme,
-  hexFromArgb: (argb: number) => string
+  hexFromArgb: (argb: number) => string,
+  colors: MaterialDynamicColors
 ): Record<SchemeRole, string> {
-  const colors = scheme.colors;
   return SCHEME_ROLES.reduce((acc, role) => {
     const toArgb = colorRoleExtractors[role];
     const argb = toArgb(colors, scheme);
@@ -247,6 +198,6 @@ export function extractHexColors(
 export async function generateColorScheme(
   options: GenerateColorSchemeOptions
 ) {
-  const { scheme, hexFromArgb } = await buildScheme(options);
-  return extractHexColors(scheme, hexFromArgb);
+  const { scheme, hexFromArgb, colors } = await buildScheme(options);
+  return extractHexColors(scheme, hexFromArgb, colors);
 }

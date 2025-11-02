@@ -19,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@material/material-color-utilities": "0.3.0",
     "@modelcontextprotocol/sdk": "^1.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
