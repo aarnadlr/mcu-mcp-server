@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-const SERVER_URL = 'https://mcp-with-express-git-main-daydrmai.vercel.app/mcp';
+// const SERVER_URL = 'https://mcp-with-express-git-main-daydrmai.vercel.app/mcp';
+const SERVER_URL = 'https://mcu-mcp.vercel.app/mcp';
 
 async function mcpRequest(method, params = {}) {
   const response = await fetch(SERVER_URL, {
@@ -44,17 +45,9 @@ async function mcpRequest(method, params = {}) {
 async function main() {
   console.log('🎨 Testing CorePalette Colors Tool\n');
 
-  // 1. Initialize
-  console.log('1. Initializing connection...');
-  const initResult = await mcpRequest('initialize', {
-    protocolVersion: '2024-11-05',
-    capabilities: {},
-    clientInfo: { name: 'color-test-client', version: '1.0.0' },
-  });
-  console.log('✅ Initialized\n');
-
-  // 2. Generate CorePalette colors with seed color #FF0062
-  console.log('2. Generating CorePalette colors with seed color #FF0062...');
+  // Generate CorePalette colors with seed color #FF0062
+  console.log('Generating CorePalette colors with seed color #FF0062...');
+  
   const colorResult = await mcpRequest('tools/call', {
     name: 'generate_corepalette_colors',
     arguments: { seedColor: '#FF0062' },
