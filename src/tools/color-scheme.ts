@@ -126,13 +126,7 @@ let modulesPromise: Promise<LoadedModules> | null = null;
 async function loadModules(): Promise<LoadedModules> {
   if (!modulesPromise) {
     modulesPromise = (async () => {
-      const [mcu, stringUtils, paletteModule] = await Promise.all([
-        import("@material/material-color-utilities"),
-        import("../../material-color-utilities/typescript/utils/string_utils.js"),
-        import(
-          "../../material-color-utilities/typescript/palettes/core_palette.js"
-        ),
-      ]);
+      const mcu = await import("@material/material-color-utilities");
 
       const schemes: Record<ColorSchemeCategory, SchemeConstructor> = {
         content: mcu.SchemeContent as any,
@@ -148,12 +142,11 @@ async function loadModules(): Promise<LoadedModules> {
 
       return {
         Hct: mcu.Hct,
-        argbFromHex: stringUtils.argbFromHex,
-        hexFromArgb: stringUtils.hexFromArgb,
+        argbFromHex: mcu.argbFromHex,
+        hexFromArgb: mcu.hexFromArgb,
         schemes,
         MaterialDynamicColors: mcu.MaterialDynamicColors,
-        CorePalette:
-          paletteModule.CorePalette as unknown as LoadedModules["CorePalette"],
+        CorePalette: mcu.CorePalette as unknown as LoadedModules["CorePalette"],
       };
     })();
   }
