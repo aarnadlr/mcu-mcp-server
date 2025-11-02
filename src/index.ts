@@ -53,24 +53,8 @@ const handleMcpRequest = async (req: Request, res: Response) => {
   }
 };
 
-// MCP endpoints
-app.post("/mcp", handleMcpRequest);
-app.get("/mcp", handleMcpRequest);
-
-// Method not allowed handler
-const methodNotAllowed = (req: Request, res: Response) => {
-  console.log(`Received ${req.method} MCP request`);
-  res.status(405).json({
-    jsonrpc: "2.0",
-    error: {
-      code: -32000,
-      message: "Method not allowed.",
-    },
-    id: null,
-  });
-};
-
-app.delete("/mcp", methodNotAllowed);
+// MCP endpoints - handle all methods and let transport decide what's allowed
+app.all("/mcp", handleMcpRequest);
 
 const { server } = createServer();
 
