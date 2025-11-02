@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./build",
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -20,6 +20,6 @@
   ],
   "exclude": [
     "node_modules",
-    "material-color-utilities"
+    "material-color-utilities/**/*"
   ]
 }

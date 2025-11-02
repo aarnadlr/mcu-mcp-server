@@ -117,6 +117,7 @@ type LoadedModules = {
   MaterialDynamicColors: MaterialDynamicColors;
   CorePalette: {
     of(argb: number): CorePaletteInstance;
+    contentOf(argb: number): CorePaletteInstance;
   };
 };
 
@@ -125,7 +126,13 @@ let modulesPromise: Promise<LoadedModules> | null = null;
 async function loadModules(): Promise<LoadedModules> {
   if (!modulesPromise) {
     modulesPromise = (async () => {
-      const mcu = await import("@material/material-color-utilities");
+      const [mcu, stringUtils, paletteModule] = await Promise.all([
+        import("@material/material-color-utilities"),
+        import("../../material-color-utilities/typescript/utils/string_utils.js"),
+        import(
+          "../../material-color-utilities/typescript/palettes/core_palette.js"
+        ),
+      ]);
 
       const schemes: Record<ColorSchemeCategory, SchemeConstructor> = {
         content: mcu.SchemeContent as any,
@@ -141,11 +148,12 @@ async function loadModules(): Promise<LoadedModules> {
 
       return {
         Hct: mcu.Hct,
-        argbFromHex: mcu.argbFromHex,
-        hexFromArgb: mcu.hexFromArgb,
+        argbFromHex: stringUtils.argbFromHex,
+        hexFromArgb: stringUtils.hexFromArgb,
         schemes,
         MaterialDynamicColors: mcu.MaterialDynamicColors,
-        CorePalette: mcu.CorePalette as unknown as LoadedModules["CorePalette"],
+        CorePalette:
+          paletteModule.CorePalette as unknown as LoadedModules["CorePalette"],
       };
     })();
   }
@@ -240,19 +248,23 @@ export async function generateCorePaletteColors(seedColor: string): Promise<
 > {
   const modules = await loadModules();
   const argb = modules.argbFromHex(seedColor);
-  const palette = modules.CorePalette.of(argb);
+  // Use contentOf to match Material Theme Builder's behavior
+  const palette = modules.CorePalette.contentOf(argb);
 
-  const keyColors: Record<CorePaletteRole, number> = {
-    primary: palette.a1.keyColor.toInt(),
-    secondary: palette.a2.keyColor.toInt(),
-    tertiary: palette.a3.keyColor.toInt(),
-    error: palette.error.keyColor.toInt(),
-    neutral: palette.n1.keyColor.toInt(),
-    neutralVariant: palette.n2.keyColor.toInt(),
+  // Material Theme Builder displays:
+  // - The original seed color for primary
+  // - Tone 60 from contentOf CorePalette for other colors
+  const colors: Record<CorePaletteRole, number> = {
+    primary: argb, // Use the original seed color
+    secondary: palette.a2.tone(60),
+    tertiary: palette.a3.tone(60),
+    error: palette.error.tone(60),
+    neutral: palette.n1.tone(60),
+    neutralVariant: palette.n2.tone(60),
   };
 
   return CORE_PALETTE_ROLES.reduce((acc, role) => {
-    acc[role] = modules.hexFromArgb(keyColors[role]);
+    acc[role] = modules.hexFromArgb(colors[role]).toUpperCase();
     return acc;
   }, {} as Record<CorePaletteRole, string>);
 }
