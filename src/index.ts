@@ -29,9 +29,9 @@ const transport = new StreamableHTTPServerTransport({
   sessionIdGenerator: undefined, // set to undefined for stateless servers
 });
 
-// MCP endpoint
-app.post("/mcp", async (req: Request, res: Response) => {
-  console.log("Received MCP request:", req.body);
+// MCP endpoint handler
+const handleMcpRequest = async (req: Request, res: Response) => {
+  console.log("Received MCP request:", req.method, req.body);
 
   try {
     await transport.handleRequest(req, res, req.body);
@@ -49,9 +49,13 @@ app.post("/mcp", async (req: Request, res: Response) => {
       });
     }
   }
-});
+};
 
-// Method not allowed handlers
+// MCP endpoints
+app.post("/mcp", handleMcpRequest);
+app.get("/mcp", handleMcpRequest);
+
+// Method not allowed handler
 const methodNotAllowed = (req: Request, res: Response) => {
   console.log(`Received ${req.method} MCP request`);
   res.status(405).json({
@@ -64,7 +68,6 @@ const methodNotAllowed = (req: Request, res: Response) => {
   });
 };
 
-app.get("/mcp", methodNotAllowed);
 app.delete("/mcp", methodNotAllowed);
 
 const { server } = createServer();
