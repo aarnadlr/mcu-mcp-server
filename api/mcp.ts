@@ -2,11 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from '../src/create-server.js';
 
-// Initialize transport (stateless)
-const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: undefined, // stateless
-});
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -21,8 +16,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Create and connect server on each request
+    // Create fresh transport and server for each request
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // stateless
+    });
+    
     const { server } = createServer();
+    
+    // Connect server to transport
     await server.connect(transport);
 
     // Handle the MCP request
@@ -32,7 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       req.body
     );
 
-    // Close the server after handling
+    // Close the server and transport after handling
+    await transport.close();
     await server.close();
   } catch (error) {
     console.error('Error handling MCP request:', error);
