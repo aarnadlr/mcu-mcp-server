@@ -32,8 +32,10 @@ const transport = new StreamableHTTPServerTransport({
 // MCP endpoint
 app.post("/mcp", async (req: Request, res: Response) => {
   console.log("Received MCP request:", req.body);
+
   try {
     await transport.handleRequest(req, res, req.body);
+    
   } catch (error) {
     console.error("Error handling MCP request:", error);
     if (!res.headersSent) {

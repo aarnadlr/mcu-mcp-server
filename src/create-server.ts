@@ -27,6 +27,7 @@ async function makeNWSRequest<T>(url: string): Promise<T | null> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     return (await response.json()) as T;
+
   } catch (error) {
     console.error("Error making NWS request:", error);
     return null;
@@ -252,9 +253,10 @@ export const createServer = () => {
     .map((name) => `"${name}"`)
     .join(", ")}`;
 
+
   server.tool(
     "generate_material_scheme_by_category",
-    "Generate a Material Design color scheme using Material Color Utilities",
+    "Generate a Material Design color scheme using Material Color Utilities, by receiving a seed color and a category",
     {
       seedColor: seedColorSchema,
       category: z
