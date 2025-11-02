@@ -82,6 +82,82 @@ interface ForecastResponse {
   };
 }
 
+// Tool definitions for export
+export const toolDefinitions = [
+  {
+    name: "get-alerts",
+    description: "Get weather alerts for a state",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        state: {
+          type: "string" as const,
+          description: "Two-letter state code (e.g. CA, NY)",
+          minLength: 2,
+          maxLength: 2,
+        },
+      },
+      required: ["state"],
+    },
+  },
+  {
+    name: "get-forecast",
+    description: "Get weather forecast for a location",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        latitude: {
+          type: "number" as const,
+          description: "Latitude of the location",
+          minimum: -90,
+          maximum: 90,
+        },
+        longitude: {
+          type: "number" as const,
+          description: "Longitude of the location",
+          minimum: -180,
+          maximum: 180,
+        },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+  {
+    name: "generate_material_scheme_by_category",
+    description: "Generate a Material Design color scheme using Material Color Utilities",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        seedColor: {
+          type: "string" as const,
+          description: "Seed color hex code (e.g. #6200EE)",
+          pattern: "^#?(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+        },
+        category: {
+          type: "string" as const,
+          description: "Material color scheme category",
+        },
+      },
+      required: ["seedColor", "category"],
+    },
+  },
+  {
+    name: "generate_corepalette_colors",
+    description: "Generate the six key colors from Material Color Utilities CorePalette",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        seedColor: {
+          type: "string" as const,
+          description: "Seed color hex code (e.g. #6200EE)",
+          pattern: "^#?(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+        },
+      },
+      required: ["seedColor"],
+    },
+  },
+];
+
 export const createServer = () => {
   // Create server instance
   const server = new McpServer({
