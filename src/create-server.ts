@@ -1,5 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import {
+  generateColorScheme,
+  supportedCategories,
+} from "./tools/color-scheme.js";
 
 const NWS_API_BASE = "https://api.weather.gov";
 const USER_AGENT = "weather-app/1.0";
@@ -229,6 +233,62 @@ export const createServer = () => {
           },
         ],
       };
+    }
+  );
+
+  server.tool(
+    "generate_color_scheme",
+    "Generate a Material Design color scheme using Material Color Utilities",
+    {
+      seedColor: z
+        .string()
+        .trim()
+        .regex(/^#?(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/)
+        .describe("Seed color hex code (e.g. #6200EE)"),
+      category: z
+        .string()
+        .trim()
+        .min(1)
+        .describe(
+          `Material color scheme category. Supported categories: ${supportedCategories()
+            .map((name) => `"${name}"`)
+            .join(", ")}`
+        ),
+    },
+    async ({ seedColor, category }) => {
+      const formattedSeed = seedColor.startsWith("#")
+        ? seedColor
+        : `#${seedColor}`;
+
+      try {
+        const colors = await generateColorScheme({
+          seedColor: formattedSeed,
+          category,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(colors, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unknown error generating color scheme";
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Failed to generate color scheme: ${message}`,
+            },
+          ],
+        };
+      }
     }
   );
 
