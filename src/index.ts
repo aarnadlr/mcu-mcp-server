@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import path from "path";
+import { randomUUID } from "crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createServer } from "./create-server.js";
 
@@ -24,9 +25,9 @@ app.use(
 );
 app.options("*", cors());
 
-// Initialize transport
+// Initialize transport with session management for Android Studio GET requests
 const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: undefined, // set to undefined for stateless servers
+  sessionIdGenerator: () => randomUUID(), // Generate session IDs for stateful mode
 });
 
 // MCP endpoint handler
@@ -34,6 +35,7 @@ const handleMcpRequest = async (req: Request, res: Response) => {
   console.log("Received MCP request:", req.method, req.body);
 
   try {
+    // Let the transport handle all headers including SSE
     await transport.handleRequest(req, res, req.body);
     
   } catch (error) {
