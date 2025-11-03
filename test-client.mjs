@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const SERVER_URL = 'https://mcp-with-express-git-codex-add-generatecorepale-168342-daydrmai.vercel.app/mcp';
+const SERVER_URL = 'https://mcu-mcp.vercel.app/mcp';
 
 async function mcpRequest(method, params = {}) {
   const response = await fetch(SERVER_URL, {
