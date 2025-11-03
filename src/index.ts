@@ -34,10 +34,10 @@ const handleMcpRequest = async (req: Request, res: Response) => {
   console.log("Query:", JSON.stringify(req.query, null, 2));
 
   try {
-    // Handle DELETE requests (session cleanup) - just return success
+    // Handle DELETE requests (session cleanup) - no response needed
     if (req.method === "DELETE") {
       console.log("DELETE request - acknowledging session cleanup");
-      res.status(200).json({ ok: true });
+      res.status(200).end();
       return;
     }
     
@@ -48,11 +48,12 @@ const handleMcpRequest = async (req: Request, res: Response) => {
       return;
     }
     
-    // Handle notifications/initialized - this is a one-way notification, just acknowledge
+    // Handle notifications/initialized - this is a one-way notification
+    // Notifications don't expect a response per JSON-RPC spec
     const body = req.body;
     if (body && body.method === 'notifications/initialized') {
-      console.log("Received notifications/initialized - acknowledging");
-      res.status(200).json({ ok: true });
+      console.log("Received notifications/initialized - no response needed");
+      res.status(200).end();
       return;
     }
     
