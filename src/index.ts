@@ -25,48 +25,18 @@ app.use(
 );
 app.options("*", cors());
 
+// Create single shared MCP server and transport for stateful operation
+const { server } = createServer();
+const transport = new StreamableHTTPServerTransport({
+  sessionIdGenerator: () => randomUUID(),
+});
+
 // MCP endpoint handler
 const handleMcpRequest = async (req: Request, res: Response) => {
-  console.log("=== Incoming MCP Request ===");
-  console.log("Method:", req.method);
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
-  console.log("Body:", JSON.stringify(req.body, null, 2));
-  console.log("Query:", JSON.stringify(req.query, null, 2));
+  console.log(`${req.method} /mcp - ${req.body?.method || 'unknown'}`);
 
   try {
-    // Handle DELETE requests (session cleanup) - no response needed
-    if (req.method === "DELETE") {
-      console.log("DELETE request - acknowledging session cleanup");
-      res.status(200).end();
-      return;
-    }
-    
-    // Handle GET requests (not used in stateless mode)
-    if (req.method === "GET") {
-      console.log("GET request - not supported in stateless mode");
-      res.status(405).json({ error: "GET not supported in stateless mode" });
-      return;
-    }
-    
-    // Handle notifications/initialized - this is a one-way notification
-    // Notifications don't expect a response per JSON-RPC spec
-    const body = req.body;
-    if (body && body.method === 'notifications/initialized') {
-      console.log("Received notifications/initialized - no response needed");
-      res.status(200).end();
-      return;
-    }
-    
-    // For other POST requests: create fresh server instance
-    console.log("Creating fresh server instance for request:", body?.method);
-    const { server } = createServer();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(), // Generate session ID per request
-    });
-    
-    await server.connect(transport);
     await transport.handleRequest(req, res, req.body);
-    
   } catch (error) {
     console.error("Error handling MCP request:", error);
     if (!res.headersSent) {
@@ -85,13 +55,20 @@ const handleMcpRequest = async (req: Request, res: Response) => {
 // MCP endpoints - handle all methods and let transport decide what's allowed
 app.all("/mcp", handleMcpRequest);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
+// Connect MCP server to transport and start Express
+server.connect(transport).then(() => {
+  app.listen(PORT, () => {
+    console.log(`MCP Server listening on port ${PORT}`);
+  });
+}).catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });
 
 // Handle server shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down server...");
+  await transport.close();
+  await server.close();
   process.exit(0);
 });
