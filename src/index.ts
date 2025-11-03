@@ -31,7 +31,11 @@ const sessions = new Map<string, { server: any; transport: StreamableHTTPServerT
 // MCP endpoint handler
 // MCP endpoint handler
 const handleMcpRequest = async (req: Request, res: Response) => {
-  console.log("Received MCP request:", req.method, req.body);
+  console.log("=== Incoming MCP Request ===");
+  console.log("Method:", req.method);
+  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Body:", JSON.stringify(req.body, null, 2));
+  console.log("Query:", JSON.stringify(req.query, null, 2));
 
   try {
     // Extract or generate session ID from headers or query params
