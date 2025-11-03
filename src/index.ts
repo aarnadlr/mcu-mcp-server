@@ -52,10 +52,19 @@ const handleMcpRequest = async (req: Request, res: Response) => {
     console.log("Creating fresh server instance for stateless request");
     const { server } = createServer();
     const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined, // Stateless mode
+      sessionIdGenerator: () => randomUUID(), // Generate session ID per request
     });
     
     await server.connect(transport);
+    
+    // Check if this is an initialize request
+    const body = req.body;
+    if (body && body.method === 'initialize') {
+      console.log("Initialize request detected");
+    } else {
+      console.log("Non-initialize request:", body?.method);
+    }
+    
     await transport.handleRequest(req, res, req.body);
     
   } catch (error) {
