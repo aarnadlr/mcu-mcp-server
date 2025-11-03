@@ -79,7 +79,7 @@ Connect using [MCP Inspector](https://modelcontextprotocol.io/docs/tools/inspect
 http://localhost:3000/mcp
 ```
 
-When deployed to Vercel, use the full deployment URL with `/mcp` path.
+When deployed to Railway, use the full deployment URL with `/mcp` path.
 
 ### Sample MCP Tool Invocations
 
