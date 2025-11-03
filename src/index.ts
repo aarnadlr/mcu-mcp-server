@@ -25,9 +25,11 @@ app.use(
 );
 app.options("*", cors());
 
-// Initialize transport with session management for Android Studio GET requests
+// Initialize transport in stateless mode
+// Note: GET requests won't work in stateless mode per MCP spec
+// Android Studio should use POST requests for all operations
 const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: () => randomUUID(), // Generate session IDs for stateful mode
+  sessionIdGenerator: undefined, // Stateless mode
 });
 
 // MCP endpoint handler
@@ -35,7 +37,22 @@ const handleMcpRequest = async (req: Request, res: Response) => {
   console.log("Received MCP request:", req.method, req.body);
 
   try {
-    // Let the transport handle all headers including SSE
+    // Android Studio compatibility: Return 200 OK for GET requests immediately
+    // Android Studio expects GET to succeed when "starting" the MCP server
+    if (req.method === "GET") {
+      console.log("Android Studio GET request - returning 200 OK");
+      res.status(200).json({
+        jsonrpc: "2.0",
+        result: {
+          status: "ready",
+          message: "MCP server is ready"
+        },
+        id: null
+      });
+      return;
+    }
+    
+    // Let the transport handle POST/DELETE requests
     await transport.handleRequest(req, res, req.body);
     
   } catch (error) {
@@ -63,6 +80,11 @@ const setupServer = async () => {
   try {
     await server.connect(transport);
     console.log("Server connected successfully");
+    
+    // Auto-initialize the transport for Android Studio compatibility
+    // This bypasses the normal initialization handshake
+    (transport as any)._initialized = true;
+    console.log("Transport pre-initialized for Android Studio");
   } catch (error) {
     console.error("Failed to set up the server:", error);
     throw error;
