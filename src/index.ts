@@ -48,23 +48,22 @@ const handleMcpRequest = async (req: Request, res: Response) => {
       return;
     }
     
-    // For POST requests: create fresh server instance per request
-    console.log("Creating fresh server instance for stateless request");
+    // Handle notifications/initialized - this is a one-way notification, just acknowledge
+    const body = req.body;
+    if (body && body.method === 'notifications/initialized') {
+      console.log("Received notifications/initialized - acknowledging");
+      res.status(200).json({ ok: true });
+      return;
+    }
+    
+    // For other POST requests: create fresh server instance
+    console.log("Creating fresh server instance for request:", body?.method);
     const { server } = createServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(), // Generate session ID per request
     });
     
     await server.connect(transport);
-    
-    // Check if this is an initialize request
-    const body = req.body;
-    if (body && body.method === 'initialize') {
-      console.log("Initialize request detected");
-    } else {
-      console.log("Non-initialize request:", body?.method);
-    }
-    
     await transport.handleRequest(req, res, req.body);
     
   } catch (error) {
