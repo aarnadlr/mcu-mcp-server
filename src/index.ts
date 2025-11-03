@@ -25,12 +25,6 @@ app.use(
 );
 app.options("*", cors());
 
-// Initialize transport in stateless mode
-// Note: GET requests won't work in stateless mode per MCP spec
-// Android Studio should use POST requests for all operations
-const transport = new StreamableHTTPServerTransport({
-  sessionIdGenerator: undefined, // Stateless mode
-});
 
 // MCP endpoint handler
 const handleMcpRequest = async (req: Request, res: Response) => {
@@ -50,7 +44,7 @@ const handleMcpRequest = async (req: Request, res: Response) => {
       // Keep connection alive - Android Studio expects this
       // The connection stays open for server-initiated messages
       const keepAlive = setInterval(() => {
-        res.write(': keepalive\n\n');
+        res.write(': keepalive\\n\\n');
       }, 30000);
       
       req.on('close', () => {
@@ -61,8 +55,14 @@ const handleMcpRequest = async (req: Request, res: Response) => {
       return;
     }
     
-    // Let the transport handle POST/DELETE requests
-    await transport.handleRequest(req, res, req.body);
+    // Create a new server instance for each request to ensure clean state
+    const { server } = createServer();
+    const requestTransport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // Stateless mode
+    });
+    
+    await server.connect(requestTransport);
+    await requestTransport.handleRequest(req, res, req.body);
     
   } catch (error) {
     console.error("Error handling MCP request:", error);
@@ -82,46 +82,13 @@ const handleMcpRequest = async (req: Request, res: Response) => {
 // MCP endpoints - handle all methods and let transport decide what's allowed
 app.all("/mcp", handleMcpRequest);
 
-const { server } = createServer();
-
-// Server setup
-const setupServer = async () => {
-  try {
-    await server.connect(transport);
-    console.log("Server connected successfully");
-  } catch (error) {
-    console.error("Failed to set up the server:", error);
-    throw error;
-  }
-};
-
 // Start server
-setupServer()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
+});
 
 // Handle server shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down server...");
-  try {
-    console.log(`Closing transport`);
-    await transport.close();
-  } catch (error) {
-    console.error(`Error closing transport:`, error);
-  }
-
-  try {
-    await server.close();
-    console.log("Server shutdown complete");
-  } catch (error) {
-    console.error("Error closing server:", error);
-  }
   process.exit(0);
 });
