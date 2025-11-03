@@ -14,10 +14,7 @@ pnpm dev
 
 ## Features
 
-This MCP server provides weather-related tools:
-
-- **get-alerts**: Get weather alerts for a US state (requires 2-letter state code)
-- **get-forecast**: Get weather forecast for a location (requires latitude/longitude)
+This MCP server provides color-related tools.
 
 ## Testing
 
